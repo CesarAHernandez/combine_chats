@@ -34,7 +34,8 @@ jobs:
         type: 'zip'
         filename: 'release.zip'
         path: './dist'     
-    - name: Release
-      uses: softprops/action-gh-release@v1
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v4.1.4
       with:
-        files: 'release.zip'
+        # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
+        name:  release.zip
