@@ -107,9 +107,11 @@ function listenOnYTChat() {
     // observer instance
     cc_obsverver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
-            // const [timestamp]
             //@ts-expect-error
-            const [timestamp, author, _, message] = mutation.addedNodes[0].children.content.childNodes
+            const childNodes = Array.from(mutation.addedNodes[0].children.content.childNodes as any[])
+            const message = childNodes.find((n: any) => n.id === 'message')
+            const timestamp = childNodes.find((n: any) => n.id === 'timestamp')
+            const author = childNodes.find((n: any) => n.nodeName === 'YT-LIVE-CHAT-AUTHOR-CHIP')
             console.log(mutation.addedNodes, timestamp.innerText, author.innerText, message.innerText);
 
             // if (message.innerText.length === 0) {
@@ -151,14 +153,40 @@ function listenOnYTChat() {
     // start observer
     cc_obsverver.observe(yt_chat, config);
 }
+let bottomPosition = 0
+let isScrolledToBottom = true
+let hasmountedScroll = false
 document.addEventListener('DOMContentLoaded', function () {
     listenOnYTChat()
     chrome.runtime.onMessage.addListener(function (message: Messenger, sender, sendResponse) {
         if (message.message && message.messageType === 'INCOMING_MESSAGE') appendMessageToYT(message.message)
     })
+
+    let i = setInterval(() => {
+        if (document.querySelector('#cc_container')) {
+            hasmountedScroll = true
+            document.querySelector('#cc_container')?.addEventListener('scroll', function (e) {
+                const scrollTop = document.querySelector('#cc_container')?.scrollTop
+                const clientHeight = document.querySelector('#cc_container')?.clientHeight
+                const scrollHeight = document.querySelector('#cc_container')?.scrollHeight
+                if (scrollHeight === null || scrollTop === undefined) return
+
+
+                //@ts-expect-error
+                if (Math.abs(scrollHeight - clientHeight - scrollTop) < 100) {
+                    isScrolledToBottom = true
+                } else {
+                    isScrolledToBottom = false
+                }
+            })
+        }
+        if (hasmountedScroll) {
+            clearInterval(i)
+            return
+        }
+    }, 1000)
 })
 
-// TODO: automatically have the scroll bar scroll to the bottom
 function appendMessageToYT(message: IncomingMessage) {
     const containerDiv = document.createElement('span')
     containerDiv.classList.add('cc_message')
@@ -187,6 +215,7 @@ function checkChildNodes() {
     }
 }
 
+
 /**
  * <div class="cc_text_container">
  * <span class="cc_username">username</span><span>:</span><span class="cc_message">message</span> 
@@ -214,7 +243,10 @@ function appendMessageElement(message: IncomingMessage, messageHTML: Node) {
     if (cc_container) {
 
         cc_container.appendChild(cc_text_container)
+        bottomPosition = cc_container?.scrollHeight
+        if (isScrolledToBottom) {
+            cc_container.scrollTop = bottomPosition
+        }
 
-        cc_container.scrollTop = cc_container?.scrollHeight;
     }
 }
