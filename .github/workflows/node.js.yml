@@ -34,12 +34,8 @@ jobs:
         type: 'zip'
         filename: 'release.zip'
         path: './dist'     
-    - name: Upload assets
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./release.zip
-        asset_name: combine_chats.zip
+        files: 'release.zip'
