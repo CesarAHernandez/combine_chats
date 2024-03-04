@@ -39,4 +39,4 @@ jobs:
       with:
         # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
         name:  release.zip
-        path: "."
+        path: "./release.zip"
