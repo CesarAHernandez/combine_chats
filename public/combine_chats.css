@@ -11,6 +11,7 @@
 
 .cc_text_container {
     padding: 3px 3px 4px 0px;
+    word-wrap: break-word
 }
 
 .cc_username {
